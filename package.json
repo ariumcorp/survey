@@ -1,0 +1,97 @@
+{
+  "name": "base-proyect",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "build:dev": "env-cmd -f .env.dev react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "cap:init": "npx cap init base-proyect com.ariumcorp.base.proyect --web-dir=build",
+    "cap:add:android": "npx cap add android",
+    "cap:add:ios": "npx cap add ios",
+    "cap:dev:local:android": "env-cmd -f .env.dev.local react-scripts build && npx cap copy && npx cap update && npx cap sync --inline && npx cap open android",
+    "cap:dev:local:ios": "env-cmd -f .env.dev.local react-scripts build && npx cap copy && npx cap update && npx cap sync --inline && npx cap open ios",
+    "cap:dev:noAndroidStudio": "env-cmd -f .env.dev react-scripts build && npx cap copy && npx cap update && npx cap sync --inline",
+    "cap:dev:local:noAndroidStudio": "env-cmd -f .env.dev.local react-scripts build && npx cap copy && npx cap update && npx cap sync --inline",
+    "electron:init": "yarn build && npx cap add @capacitor-community/electron",
+    "electron:install": "cd electron && npm install && cd ..",
+    "electron:prepare:start": "npx cap sync @capacitor-community/electron && npx cap copy @capacitor-community/electron",
+    "electron:start": "yarn electron:prepare:start && cd electron && npm run electron:start",
+    "electron:prepare:dev": "yarn build:dev && npx cap sync @capacitor-community/electron && npx cap copy @capacitor-community/electron",
+    "electron:publish:dev:local": "yarn cap:dev:local:noAndroidStudio && npx cap sync @capacitor-community/electron && npx cap copy @capacitor-community/electron && cd electron && npm run electron:make",
+    "electron:publish:dev": "yarn electron:install && yarn electron:prepare:dev && yarn cap:dev:noAndroidStudio && npx cap sync @capacitor-community/electron && npx cap copy @capacitor-community/electron && cd electron && npm run electron:make"
+  },
+  "dependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-scripts": "5.0.1",
+    "typescript": "^5.9.2",
+    "web-vitals": "^2.1.0",
+    "@capacitor/core": "7.4.3",
+    "@capacitor/cli": "7.4.3",
+    "@capacitor/ios": "7.4.3",
+    "@capacitor/android": "7.4.3",
+    "@capacitor-community/electron": "5.0.1",
+    "react-redux": "9.2.0",
+    "@reduxjs/toolkit": "2.9.0",
+    "redux-logger": "3.0.6",
+    "redux-persist": "6.0.0",
+    "redux-persist-transform-encrypt": "5.1.1",
+    "redux-thunk": "3.1.0",
+    "zod": "4.1.5",
+    "axios": "1.11.0",
+    "@mui/material": "7.3.2",
+    "@mui/icons-material": "7.3.2",
+    "@emotion/react": "11.14.0",
+    "@emotion/styled": "11.14.1",
+    "survey-react-ui": "1.12.52",
+    "survey-core": "1.12.52",
+    "@capacitor/camera": "7.0.2",
+    "survey-analytics": "1.12.52",
+    "react-router": "^7.8.2",
+    "framer-motion": "12.23.12",
+    "pouchdb-browser": "9.0.0",
+    "eventemitter3": "5.0.1"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^13.2.1",
+    "@types/jest": "^27.0.1",
+    "@types/node": "^16.7.13",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "env-cmd": "11.0.0",
+    "@types/redux-logger": "3.0.13",
+    "@types/redux-mock-store": "1.5.0",
+    "redux-mock-store": "1.5.5",
+    "@types/pouchdb-browser": "6.1.5",
+    "@types/eventemitter3": "2.0.4",
+    "@babel/plugin-transform-classes": "7.28.4",
+    "@babel/preset-env": "7.28.3",
+    "@babel/preset-react": "7.27.1",
+    "@babel/preset-typescript": "7.27.1",
+    "babel-plugin-module-resolver": "5.0.2"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
