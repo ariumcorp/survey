@@ -1,0 +1,107 @@
+name: ADMIN-CENTER Docker Build Image DEV
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+on:
+  push:
+    branches:
+      - "ft*"
+      - "bf*"
+      - "bc*"
+      - "dev"
+env:
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: ghcr.io
+  # github.repository as <account>/<repo>
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Create .env.dev file
+        run: |
+          echo "${{ secrets.ENV_DEV }}" > .env.dev
+      - name: Reading package.json File
+        id: read_json1
+        uses: MegaPiggy/json-reader-action@v1.0.0
+        with:
+          path: "package.json"
+          property: "version"
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ariumdev
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+      - name: Build and push
+        id: build-and-push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile.DEV
+          push: true
+          tags: ariumdev/surveys:${{ steps.read_json1.outputs.value }}-dev
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign image with Cosign (keyless)
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        run: |
+          cosign sign --yes docker.io/ariumdev/surveys@${{ steps.build-and-push.outputs.digest }}
+
+      - name: Generate and attach attestation
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        run: |
+          cat <<EOF > provenance.json
+           {
+             "_type": "https://in-toto.io/Statement/v0.1",
+             "subject": [{
+               "name": "docker.io/ariumdev/surveys",
+               "digest": {
+                 "sha256": "${{ steps.build-and-push.outputs.digest }}"
+               }
+             }],
+             "predicateType": "https://slsa.dev/provenance/v0.2",
+             "predicate": {
+               "builder": {
+                 "id": "https://github.com/${{ github.repository }}"
+               },
+               "buildType": "github-actions",
+               "invocation": {
+                 "configSource": {
+                   "uri": "git+https://github.com/${{ github.repository }}.git",
+                   "digest": {
+                     "sha1": "${{ github.sha }}"
+                   },
+                   "entryPoint": "${{ github.workflow }}"
+                 }
+               },
+               "metadata": {
+                 "buildStartedOn": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+               }
+             }
+           }
+           EOF
+
+           cosign attest --yes \
+             --predicate provenance.json \
+             --type slsaprovenance \
+             docker.io/ariumdev/surveys@${{ steps.build-and-push.outputs.digest }}
